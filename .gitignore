@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.vite/
+*.local
+playwright-report/
+test-results/
+.DS_Store
+
+.venv/
+*.tsbuildinfo
+
+.arena/
