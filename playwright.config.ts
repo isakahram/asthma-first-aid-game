@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 45_000,
   reporter: 'list',
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173/asthma-first-aid-game/',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173/',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     reducedMotion: 'reduce',
@@ -32,7 +32,7 @@ export default defineConfig({
           process.env.PLAYWRIGHT_TEST_SERVER === 'preview'
             ? 'npm run preview -- --port 5173'
             : 'npm run dev -- --port 5173',
-        url: 'http://localhost:5173/asthma-first-aid-game/',
+        url: 'http://localhost:5173/',
         reuseExistingServer: !process.env.CI,
       },
 })

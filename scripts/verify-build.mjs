@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 
 const root = resolve('dist')
 const info = JSON.parse(await readFile(resolve(root, 'quest-info.json'), 'utf8'))
-assert.equal(info.base, '/asthma-first-aid-game/')
+assert.equal(info.base, '/')
 assert.equal(info.scenarioCount, 20)
 assert.equal(info.maxScore, 200)
 assert.equal(info.scenarios.length, 20)

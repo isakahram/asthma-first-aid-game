@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { MAX_SCORE, SCENARIO_COUNT, scenarios } from './src/data'
 
-const base = '/asthma-first-aid-game/'
+const base = '/'
 
 export default defineConfig({
   base,
