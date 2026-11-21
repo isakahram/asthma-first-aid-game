@@ -1,0 +1,95 @@
+name: Test and deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - arena/1d38d885-asthma-first-aid-game
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.event_name == 'pull_request' && github.ref || 'production' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and test 20 situations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+      - name: Build and verify Pages asset paths
+        run: npm run build
+      - name: Test the production build on desktop and mobile
+        run: npm test
+        env:
+          PLAYWRIGHT_TEST_SERVER: preview
+      - name: Upload browser diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-diagnostics
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload the site
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Publish and verify the public site
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read GitHub Pages configuration
+        uses: actions/configure-pages@v5
+      - name: Deploy the tested artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Check the live page, metadata, bundles and all illustrations
+        run: node scripts/verify-deployment.mjs "$PAGE_URL"
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+      - name: Publish deployment details
+        run: |
+          echo "### Public site" >> "$GITHUB_STEP_SUMMARY"
+          echo "$PAGE_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified: 20 situations, 200 points, all illustrations and production bundles." >> "$GITHUB_STEP_SUMMARY"
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+      - name: Explain one-time Pages setup if deployment failed
+        if: failure()
+        run: |
+          echo "If Pages has not been enabled, a repository owner must select **Settings → Pages → Build and deployment → Source: GitHub Actions**." >> "$GITHUB_STEP_SUMMARY"
+          echo "Settings: https://github.com/${GITHUB_REPOSITORY}/settings/pages" >> "$GITHUB_STEP_SUMMARY"
+          echo "Then rerun the failed deployment job. No personal access token or extra secret is needed." >> "$GITHUB_STEP_SUMMARY"

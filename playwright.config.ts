@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 45_000,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173/asthma-first-aid-game/',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     reducedMotion: 'reduce',
@@ -25,9 +25,14 @@ export default defineConfig({
       use: { browserName: 'chromium', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
     },
   ],
-  webServer: {
-    command: 'npm run dev -- --port 5173',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        command:
+          process.env.PLAYWRIGHT_TEST_SERVER === 'preview'
+            ? 'npm run preview -- --port 5173'
+            : 'npm run dev -- --port 5173',
+        url: 'http://localhost:5173/asthma-first-aid-game/',
+        reuseExistingServer: !process.env.CI,
+      },
 })
