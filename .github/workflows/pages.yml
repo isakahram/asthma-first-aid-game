@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - arena/1d38d885-asthma-first-aid-game
   pull_request:
     branches: [main]
   workflow_dispatch:

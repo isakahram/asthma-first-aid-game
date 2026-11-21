@@ -109,9 +109,9 @@ test('all four chapters preview their five illustrated situations', async ({ pag
   }
 })
 
-test('all scene images, hero and favicon load under the Pages subpath', async ({ page }) => {
+test('all scene images, hero and favicon load from the site root', async ({ page }) => {
   await page.goto('./')
-  expect(new URL(page.url()).pathname).toBe('/asthma-first-aid-game/')
+  expect(new URL(page.url()).pathname).toBe('/')
   for (const asset of [
     'favicon.svg',
     'images/school-friends.webp',

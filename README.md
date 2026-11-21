@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Открыть: **http://localhost:5173/asthma-first-aid-game/**. Vite перенаправляет корневой адрес на подкаталог проекта. Сервер слушает `0.0.0.0`; разрешены localhost и домены предпросмотра `*.e2b.app`.
+Открыть: **http://localhost:5173/**. Сервер слушает `0.0.0.0`; разрешены localhost и домены предпросмотра `*.e2b.app`.
 
 ```sh
 npm run build    # TypeScript, production-сборка и проверка всех путей/иллюстраций
@@ -46,19 +46,19 @@ npm run preview  # Просмотр production-сборки
 
 ## Публикация на GitHub Pages
 
-`vite.config.ts` задаёт **`base: '/asthma-first-aid-game/'`**. Все картинки, favicon, шрифты и собранные JS/CSS используют этот подкаталог, включая предзагрузку следующей сцены. Никакая ветка `gh-pages`, отдельный сервер или секретный токен для деплоя не нужны.
+`vite.config.ts` задаёт **`base: '/'`**. Все картинки, favicon, шрифты и собранные JS/CSS загружаются из корня сайта, включая предзагрузку следующей сцены. Никакая ветка `gh-pages`, отдельный сервер или секретный токен для деплоя не нужны.
 
 ### Однократная настройка владельцем
 
 В репозитории открыть **Settings → Pages → Build and deployment → Source → GitHub Actions**:
 
-https://github.com/isakahram/asthma-first-aid-game/settings/pages
+https://github.com/ryadom-quest/ryadom-quest.github.io/settings/pages
 
 Включение Pages требует прав администратора и разрешения Pages у подключения. Если API возвращает `Resource not accessible by integration (403)`, выбрать источник в веб-интерфейсе владельца или обновить разрешения подключения GitHub в Arena. Передавать токены и пароли не требуется.
 
 ### Автоматический workflow
 
-`.github/workflows/pages.yml` запускается при push в `main` и рабочую ветку `arena/1d38d885-asthma-first-aid-game`, а также проверяет pull requests в `main`. Доступен `workflow_dispatch` (после попадания workflow в основную ветку).
+`.github/workflows/pages.yml` запускается при push в `main`, а также проверяет pull requests в `main`. Доступен `workflow_dispatch`.
 
 1. `npm ci`, установка Chromium, TypeScript и production-сборка.
 2. Проверка 20 ситуаций, максимума 200, уникальных картинок и путей в `dist/`.
@@ -66,12 +66,12 @@ https://github.com/isakahram/asthma-first-aid-game/settings/pages
 4. Публикация проверенного артефакта через `actions/upload-pages-artifact` и `actions/deploy-pages`.
 5. Проверка публичного HTML, JS/CSS, favicon, всех иллюстраций и метаданных текущего коммита; URL добавляется в итог workflow.
 
-Pull requests только собираются и проверяются, но **не публикуются**. Права `pages: write` и `id-token: write` выданы только отдельной задаче деплоя. Если для окружения `github-pages` заданы ограничения веток, нужно разрешить `main` и указанную рабочую ветку. После включения Pages или изменения ограничений можно перезапустить упавшую задачу деплоя.
+Pull requests только собираются и проверяются, но **не публикуются**. Права `pages: write` и `id-token: write` выданы только отдельной задаче деплоя. Если для окружения `github-pages` заданы ограничения веток, нужно разрешить `main`. После включения Pages или изменения ограничений можно перезапустить упавшую задачу деплоя.
 
-Стандартный адрес проекта после успешного деплоя: **https://isakahram.github.io/asthma-first-aid-game/**. Факт публикации проверяется задачей `Check the live page, metadata, bundles and all illustrations`, а не только существованием этой ссылки.
+Адрес сайта после успешного деплоя: **https://ryadom-quest.github.io/**. Факт публикации проверяется задачей `Check the live page, metadata, bundles and all illustrations`, а не только существованием этой ссылки.
 
 ```sh
-npm run verify:deployment -- https://isakahram.github.io/asthma-first-aid-game/
+npm run verify:deployment -- https://ryadom-quest.github.io/
 ```
 
 ## Тестирование
