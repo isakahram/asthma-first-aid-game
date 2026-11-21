@@ -1,3 +1,5 @@
+import { additionalScenarios } from './additional-scenarios'
+
 export type Screen = 'intro' | 'rules' | 'play' | 'result'
 export type Points = 0 | 5 | 10
 
@@ -7,8 +9,31 @@ export interface Answer {
   feedback: string
 }
 
+export type ScenarioIcon =
+  | 'footprints'
+  | 'flower'
+  | 'notebook'
+  | 'door'
+  | 'utensils'
+  | 'landmark'
+  | 'book'
+  | 'music'
+  | 'bus'
+  | 'shirt'
+  | 'trees'
+  | 'home'
+  | 'bot'
+  | 'party'
+  | 'cinema'
+  | 'flag'
+  | 'bag'
+  | 'tools'
+  | 'compass'
+  | 'heart'
+
 export interface Scenario {
   id: string
+  icon: ScenarioIcon
   location: string
   preview: string
   setting: string
@@ -47,13 +72,14 @@ export const steps = [
 export const scenarios: Scenario[] = [
   {
     id: 'running',
+    icon: 'footprints',
     location: 'Физкультура',
     preview: 'На школьном кроссе',
     setting: 'Школьный стадион · Кросс',
     title: 'До финиша ещё далеко',
     description:
       'На кроссе твой одноклассник Саша замедляется и говорит, что ему трудно дышать. Учитель стоит у финиша. Что ты сделаешь?',
-    image: '/images/scene-running.webp',
+    image: 'images/scene-running.webp',
     imageAlt: 'Саша сидит на скамейке у школьной беговой дорожки, а подруга стоит рядом.',
     color: 'peach',
     note: 'Сейчас важнее друг, а не результат забега.',
@@ -80,13 +106,14 @@ export const scenarios: Scenario[] = [
   },
   {
     id: 'flowers',
+    icon: 'flower',
     location: 'Прогулка',
     preview: 'Когда всё цветёт',
     setting: 'Весенний парк · Цветение',
     title: 'Вокруг всё цветёт',
     description:
       'Во время прогулки Саша кашляет и говорит, что ему трудно дышать. Рядом с классом идёт ваша учительница. Как поможешь?',
-    image: '/images/scene-flowers.webp',
+    image: 'images/scene-flowers.webp',
     imageAlt: 'Саша и его подруга у скамейки в парке с цветущими деревьями.',
     color: 'green',
     note: 'Не нужно искать причину самому. Просто помоги.',
@@ -113,13 +140,14 @@ export const scenarios: Scenario[] = [
   },
   {
     id: 'classroom',
+    icon: 'notebook',
     location: 'Класс',
     preview: 'Во время контрольной',
     setting: 'Школьный класс · Контрольная',
     title: 'Контрольная подождёт',
     description:
       'Идёт контрольная. Саша шепчет, что ему трудно дышать, и просит не привлекать внимания. Как ты поступишь?',
-    image: '/images/scene-classroom.webp',
+    image: 'images/scene-classroom.webp',
     imageAlt: 'Саша сидит за партой с открытой тетрадью, рядом его подруга.',
     color: 'lavender',
     note: 'Просить о помощи — не значит мешать.',
@@ -146,13 +174,14 @@ export const scenarios: Scenario[] = [
   },
   {
     id: 'hallway',
+    icon: 'door',
     location: 'Перемена',
     preview: 'В шумном коридоре',
     setting: 'Школьный коридор · Перемена',
     title: 'Кого отправить за учителем?',
     description:
       'В коридоре Саше трудно дышать. Учитель в соседнем кабинете, а рядом стоят одноклассники. Как позвать взрослого и поддержать друга?',
-    image: '/images/scene-hallway.webp',
+    image: 'images/scene-hallway.webp',
     imageAlt: 'Саша сидит на скамейке в школьном коридоре, подруга рядом с ним.',
     color: 'blue',
     note: 'Помощь — командное дело. Можно распределить задачи.',
@@ -179,13 +208,14 @@ export const scenarios: Scenario[] = [
   },
   {
     id: 'cafeteria',
+    icon: 'utensils',
     location: 'Столовая',
     preview: 'Незнакомый запах',
     setting: 'Школьная столовая · Запах краски',
     title: 'Здесь пахнет краской',
     description:
       'Из соседнего помещения пахнет краской. Саша говорит, что ему трудно дышать. Дежурный учитель у входа. Что ты сделаешь?',
-    image: '/images/scene-cafeteria.webp',
+    image: 'images/scene-cafeteria.webp',
     imageAlt: 'Саша и подруга у столика в столовой; в соседнем помещении стоят принадлежности для покраски.',
     color: 'sand',
     note: 'Расскажи взрослому и о самочувствии, и о запахе.',
@@ -212,13 +242,14 @@ export const scenarios: Scenario[] = [
   },
   {
     id: 'stairs',
+    icon: 'landmark',
     location: 'Экскурсия',
     preview: 'У музейной лестницы',
     setting: 'Музей · Лестница',
     title: 'Время позвать помощь',
     description:
       'На экскурсии у лестницы Саше трудно дышать. Он уже сидит, учитель рядом и просит тебя вызвать помощь. Как ты поступишь?',
-    image: '/images/scene-stairs.webp',
+    image: 'images/scene-stairs.webp',
     imageAlt: 'Саша сидит на скамейке у музейной лестницы. Подруга стоит рядом с телефоном.',
     color: 'pink',
     note: 'Назови адрес и спокойно отвечай на вопросы диспетчера.',
@@ -243,24 +274,41 @@ export const scenarios: Scenario[] = [
       },
     ],
   },
+  ...additionalScenarios,
 ]
+
+export const SCENARIO_COUNT = scenarios.length
+export const MAX_SCORE = scenarios.reduce(
+  (sum, scene) => sum + Math.max(...scene.options.map((option) => option.points)),
+  0,
+)
+export const CHAPTER_SIZE = 5
+export const chapters = [
+  { title: 'Школьный день', description: 'Знакомые места. Важные решения.' },
+  { title: 'Новые места', description: 'Тот же простой алгоритм — в другой обстановке.' },
+  { title: 'Друзья рядом', description: 'Забота нужна не только на уроках.' },
+  { title: 'Время помогать', description: 'Объединяем навыки и зовём помощь.' },
+]
+
+const firstRangeEnd = Math.floor(MAX_SCORE * 0.4)
+const secondRangeEnd = Math.floor(MAX_SCORE * 0.75)
 
 export const scoreRanges = [
   {
     min: 0,
-    max: 25,
+    max: firstRangeEnd,
     label: 'Начало положено!',
     text: 'Ты уже сделал важный шаг — разобрался в ситуациях. Перечитай памятку и попробуй ещё раз: навык появляется с практикой.',
   },
   {
-    min: 26,
-    max: 45,
+    min: firstRangeEnd + 1,
+    max: secondRangeEnd,
     label: 'Хорошая основа!',
     text: 'Ты умеешь поддержать друга. Ещё немного практики, чтобы не забывать вовремя звать взрослого и оставаться рядом.',
   },
   {
-    min: 46,
-    max: 60,
+    min: secondRangeEnd + 1,
+    max: MAX_SCORE,
     label: 'Ты — надёжный друг!',
     text: 'В учебных ситуациях ты уверенно выбираешь поддержку и помощь взрослого. Сохрани этот простой порядок действий.',
   },

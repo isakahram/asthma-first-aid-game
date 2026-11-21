@@ -10,16 +10,12 @@ import {
   Check,
   ChevronDown,
   Clock3,
-  DoorOpen,
   Download,
   Flag,
-  Flower2,
-  Footprints,
   HandHeart,
   Heart,
   HeartHandshake,
   Info,
-  Landmark,
   Lightbulb,
   MapPin,
   Megaphone,
@@ -31,23 +27,30 @@ import {
   Sparkles,
   Trophy,
   UsersRound,
-  Utensils,
   X,
 } from 'lucide-react'
-import { countryNote, disclaimer, getScore, getScoreRange, scenarios, scoreRanges, steps } from './data'
+import {
+  countryNote,
+  disclaimer,
+  getScore,
+  getScoreRange,
+  scenarios,
+  scoreRanges,
+  steps,
+  SCENARIO_COUNT,
+  MAX_SCORE,
+  CHAPTER_SIZE,
+  chapters,
+} from './data'
 import type { Screen } from './data'
 
-const STORAGE_KEY = 'ryadom-quest-v1'
-const sceneIcons = [Footprints, Flower2, NotebookPen, DoorOpen, Utensils, Landmark]
+import { sceneIcons } from './icons'
+import { assetUrl } from './paths'
+import QuestOverview from './QuestOverview'
+import { STORAGE_KEY, freshProgress, loadProgress } from './progress'
+import type { Progress } from './progress'
+
 const stepIcons = [Megaphone, Armchair, HandHeart, PhoneCall]
-
-type Progress = {
-  screen: Screen
-  questionIndex: number
-  answers: number[]
-}
-
-const freshProgress: Progress = { screen: 'intro', questionIndex: 0, answers: [] }
 
 function Starburst({ className = '' }: { className?: string }) {
   return (
@@ -55,35 +58,6 @@ function Starburst({ className = '' }: { className?: string }) {
       <path d="m24 0 4.4 14L41 6.8l-7.2 12.8L48 24l-14.2 4.4L41 41.2 28.4 34 24 48l-4.4-14L7 41.2l7.2-12.8L0 24l14.2-4.4L7 6.8 19.6 14 24 0Z" />
     </svg>
   )
-}
-
-function loadProgress(): Progress {
-  try {
-    const saved: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
-    if (!saved || typeof saved !== 'object') return freshProgress
-    const value = saved as Partial<Progress>
-    if (
-      !Array.isArray(value.answers) ||
-      value.answers.length > scenarios.length ||
-      !value.answers.every((answer) => Number.isInteger(answer) && answer >= 0 && answer <= 2)
-    ) {
-      return freshProgress
-    }
-    const validScreens: Screen[] = ['intro', 'rules', 'play', 'result']
-    const screen = validScreens.includes(value.screen as Screen) ? (value.screen as Screen) : 'intro'
-    const questionIndex = Math.min(
-      Math.max(0, Number.isInteger(value.questionIndex) ? value.questionIndex! : value.answers.length),
-      value.answers.length,
-      scenarios.length - 1,
-    )
-    return {
-      screen: screen === 'result' && value.answers.length !== scenarios.length ? 'intro' : screen,
-      questionIndex,
-      answers: value.answers,
-    }
-  } catch {
-    return freshProgress
-  }
 }
 
 function Brand({ onClick, footer = false }: { onClick: () => void; footer?: boolean }) {
@@ -132,7 +106,7 @@ function Disclaimer({ final = false }: { final?: boolean }) {
 function Journey({ stage }: { stage: 1 | 2 | 3 }) {
   return (
     <nav className="journey" aria-label="Этапы квеста">
-      {['Правила', '6 ситуаций', 'Твой результат'].map((label, i) => (
+      {['Правила', `${SCENARIO_COUNT} ситуаций`, 'Твой результат'].map((label, i) => (
         <span
           key={label}
           className={`journey-step ${stage === i + 1 ? 'is-current' : ''} ${stage > i + 1 ? 'is-done' : ''}`}
@@ -189,7 +163,7 @@ function Intro({ answers, onStart }: { answers: number[]; onStart: () => void })
       <section className="hero">
         <div className="hero-copy">
           <div className="eyebrow hero-eyebrow">
-            <Starburst className="small-star" /> Маленькие действия. Большая поддержка.
+            <Starburst className="small-star" /> {SCENARIO_COUNT} ситуаций. Один важный навык.
           </div>
           <h1 id="main-heading" tabIndex={-1} className="hero-title">
             Астма:
@@ -220,13 +194,9 @@ function Intro({ answers, onStart }: { answers: number[]; onStart: () => void })
             <button
               className="button-text hero-secondary"
               onClick={() =>
-                document
-                  .getElementById('quest-path')
-                  ?.scrollIntoView({
-                    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                      ? 'auto'
-                      : 'smooth',
-                  })
+                document.getElementById('quest-path')?.scrollIntoView({
+                  behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                })
               }
             >
               Что меня ждёт? <ArrowDown size={17} />
@@ -234,10 +204,10 @@ function Intro({ answers, onStart }: { answers: number[]; onStart: () => void })
           </div>
           <div className="hero-meta">
             <span>
-              <Flag size={16} /> 6 ситуаций
+              <Flag size={16} /> {SCENARIO_COUNT} ситуаций
             </span>
             <span>
-              <Clock3 size={17} /> ~5 минут
+              <Clock3 size={17} /> ~15 минут
             </span>
             <span>
               <Heart size={16} /> Без стресса
@@ -253,7 +223,7 @@ function Intro({ answers, onStart }: { answers: number[]; onStart: () => void })
           <Starburst className="visual-spark spark-one" />
           <div className="hero-picture">
             <img
-              src="/images/school-friends.webp"
+              src={assetUrl('images/school-friends.webp')}
               alt="Саша сидит на скамейке у школы, а подруга спокойно поддерживает его, положив руку ему на плечо."
               width="1152"
               height="928"
@@ -288,43 +258,7 @@ function Intro({ answers, onStart }: { answers: number[]; onStart: () => void })
         </div>
       </section>
       <Disclaimer />
-      <section className="quest-overview" id="quest-path" aria-labelledby="overview-heading">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">Твой школьный день</span>
-            <h2 id="overview-heading">Один друг. Шесть ситуаций.</h2>
-          </div>
-          <p>
-            Знакомые места. Важные решения.
-            <br />
-            <span>Ошибаться можно — мы здесь, чтобы научиться.</span>
-          </p>
-        </div>
-        <ol className="scene-grid">
-          {scenarios.map((scene, i) => {
-            const Icon = sceneIcons[i]
-            return (
-              <li className={`scene-card scene-${scene.color}`} key={scene.id}>
-                <div className="scene-card-top">
-                  <span className="scene-icon">
-                    <Icon size={26} strokeWidth={1.5} />
-                  </span>
-                  <span className="scene-number">0{i + 1}</span>
-                </div>
-                <h3>{scene.location}</h3>
-                <p>{scene.preview}</p>
-              </li>
-            )
-          })}
-        </ol>
-        <div className="overview-bottom">
-          <span className="overlapping-hearts" aria-hidden="true">
-            <Heart size={15} fill="currentColor" />
-            <Heart size={15} fill="currentColor" />
-          </span>
-          Не нужно быть супергероем, чтобы поддержать друга.
-        </div>
-      </section>
+      <QuestOverview />
     </>
   )
 }
@@ -364,7 +298,7 @@ function Rules({
                 <span className="step-art">
                   <Icon size={31} strokeWidth={1.5} />
                 </span>
-                <span className="step-index">0{i + 1}</span>
+                <span className="step-index">{String(i + 1).padStart(2, '0')}</span>
                 {i < 3 && <ArrowRight size={20} className="step-connector" />}
               </div>
               <h2>{step.title}</h2>
@@ -443,7 +377,7 @@ function Quiz({
   onRules: () => void
 }) {
   const scene = scenarios[index]
-  const Icon = sceneIcons[index]
+  const Icon = sceneIcons[scene.icon]
   const selected = answers[index]
   const answer = selected !== undefined ? scene.options[selected] : undefined
   const isLast = index === scenarios.length - 1
@@ -475,18 +409,21 @@ function Quiz({
         </span>
       </div>
       <div className="quiz-progress-heading">
-        <span className="eyebrow">Твой школьный день</span>
+        <span className="eyebrow">
+          Глава {Math.floor(index / CHAPTER_SIZE) + 1} · {chapters[Math.floor(index / CHAPTER_SIZE)].title}
+        </span>
         <span>
-          Ситуация <b>{index + 1}</b> из 6
+          Ситуация <b>{index + 1}</b> из {SCENARIO_COUNT}
         </span>
       </div>
       <div
         className="quiz-progress"
+        style={{ '--scenario-count': SCENARIO_COUNT } as CSSProperties}
         role="progressbar"
         aria-label="Пройдено ситуаций"
         aria-valuenow={answers.length}
         aria-valuemin={0}
-        aria-valuemax={6}
+        aria-valuemax={SCENARIO_COUNT}
       >
         {scenarios.map((item, i) => (
           <span
@@ -500,11 +437,11 @@ function Quiz({
           <div className="quiz-scene-badge">
             <Icon size={17} strokeWidth={1.7} />
             <span>{scene.location}</span>
-            <span className="quiz-scene-number">0{index + 1}</span>
+            <span className="quiz-scene-number">{String(index + 1).padStart(2, '0')}</span>
           </div>
           <img
             className="quiz-scene-image"
-            src={scene.image}
+            src={assetUrl(scene.image)}
             alt={scene.imageAlt}
             width="1152"
             height="928"
@@ -523,7 +460,7 @@ function Quiz({
         </div>
         <div className="question-area">
           <span className="question-eyebrow">
-            Ситуация 0{index + 1} <span>/ 06</span>
+            Ситуация {String(index + 1).padStart(2, '0')} <span>/ {SCENARIO_COUNT}</span>
           </span>
           <h1 id="main-heading" tabIndex={-1}>
             {scene.title}
@@ -584,7 +521,7 @@ function Quiz({
                 </div>
               </div>
               <div className="next-action">
-                <span>{isLast ? 'Все шесть ситуаций позади' : 'Ещё один шаг к уверенности'}</span>
+                <span>{isLast ? `Все ${SCENARIO_COUNT} ситуаций позади` : 'Ещё один шаг к уверенности'}</span>
                 <button className="button button-primary" onClick={onNext}>
                   {isLast ? 'Узнать результат' : 'Следующая ситуация'} <ArrowRight size={19} />
                 </button>
@@ -623,22 +560,22 @@ function Result({
         <h1 id="main-heading" tabIndex={-1}>
           Быть рядом — <span className="highlight">уже важно.</span>
         </h1>
-        <p>Шесть ситуаций позади. А полезный навык — с тобой.</p>
+        <p>Все {SCENARIO_COUNT} ситуаций позади. А полезный навык — с тобой.</p>
       </div>
       <div className="result-main">
-        <section className="score-result-card" aria-label={`Твой результат: ${score} из 60 баллов`}>
+        <section className="score-result-card" aria-label={`Твой результат: ${score} из ${MAX_SCORE} баллов`}>
           <Starburst className="result-spark result-spark-one" />
           <Starburst className="result-spark result-spark-two" />
           <span className="eyebrow">Твой результат</span>
           <div
             className="score-ring"
-            style={{ '--score-angle': `${(score / 60) * 360}deg` } as CSSProperties}
+            style={{ '--score-angle': `${(score / MAX_SCORE) * 360}deg` } as CSSProperties}
           >
             <div className="score-ring-inner">
               <Trophy size={24} strokeWidth={1.5} />
               <strong>
                 {score}
-                <span>/ 60</span>
+                <span>/ {MAX_SCORE}</span>
               </strong>
               <span>баллов заботы</span>
             </div>
@@ -711,7 +648,7 @@ function Result({
             <NotebookPen size={21} /> Посмотреть мои ответы
           </span>
           <span className="review-counter">
-            6 ситуаций <ChevronDown size={19} />
+            {SCENARIO_COUNT} ситуаций <ChevronDown size={19} />
           </span>
         </summary>
         <div className="review-list">
@@ -721,7 +658,7 @@ function Result({
               <article key={scene.id}>
                 <div className="review-title">
                   <h3>
-                    <span>0{i + 1}</span> {scene.location}
+                    <span>{String(i + 1).padStart(2, '0')}</span> {scene.location}
                   </h3>
                   <span className={`review-points review-points-${choice.points}`}>
                     +{choice.points} баллов
@@ -797,7 +734,7 @@ function HelpDialog({
                 </span>
                 <div>
                   <h3>
-                    <span>0{i + 1}.</span> {step.title}
+                    <span>{String(i + 1).padStart(2, '0')}.</span> {step.title}
                   </h3>
                   <p>{step.description}</p>
                 </div>
@@ -873,7 +810,7 @@ export default function App() {
     document.title = `${pageTitles[screen]} — Рядом`
     if (screen === 'play' && questionIndex < scenarios.length - 1) {
       const image = new Image()
-      image.src = scenarios[questionIndex + 1].image
+      image.src = assetUrl(scenarios[questionIndex + 1].image)
     }
   }, [screen, questionIndex])
 
@@ -970,12 +907,16 @@ export default function App() {
               <UsersRound size={16} strokeWidth={1.7} />
               11–17 лет
             </span>
-            <div className="score-badge" aria-label={`Твой счёт: ${score} из 60 баллов`} aria-live="polite">
+            <div
+              className="score-badge"
+              aria-label={`Твой счёт: ${score} из ${MAX_SCORE} баллов`}
+              aria-live="polite"
+            >
               <Trophy size={19} strokeWidth={1.7} />
               <span className="score-number" key={score} data-testid="score">
                 {score}
               </span>
-              <span className="score-out-of">/ 60</span>
+              <span className="score-out-of">/ {MAX_SCORE}</span>
             </div>
           </div>
         </div>
